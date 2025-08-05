@@ -2,30 +2,37 @@
 
 🚀 **Automated job parser that finds H1B sponsoring companies for DevOps, Site Reliability, and Infrastructure Engineer positions posted within the last 24 hours.**
 
+⚡ **Now includes anti-blocking features and alternative parsing methods to handle site restrictions!**
+
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status: Active](https://img.shields.io/badge/Status-Active-green.svg)](https://github.com/username/h1b-job-parser)
+[![Status: Active](https://img.shields.io/badge/Status-Active-green.svg)](https://github.com/b95702041/h1b-job-parser)
 
 ## 🎯 Features
 
 - **🕐 Real-time Filtering**: Only finds jobs posted within the last 24 hours
 - **🎯 Target Role Detection**: Specifically searches for DevOps, SRE, Infrastructure, Platform, and Cloud Engineering roles
 - **🔍 H1B Sponsorship Analysis**: Intelligently detects H1B visa sponsorship mentions with confidence scoring
-- **📊 Multi-source Scraping**: Searches Indeed and Glassdoor simultaneously
+- **🛡️ Anti-blocking Technology**: Enhanced headers, random delays, and user agent rotation to avoid detection
+- **📡 Multiple Search Methods**: RSS feeds, alternative job sites, and traditional web scraping
+- **📊 Multi-source Scraping**: Searches Indeed, ZipRecruiter, Dice, and RSS feeds
 - **💾 Export Options**: Saves results in both CSV and JSON formats
 - **📈 Detailed Reports**: Generates comprehensive summary reports with statistics
 - **⚡ Rate Limiting**: Respectful scraping with built-in delays
+- **🔄 Alternative Parser**: Backup script for when main sites block requests
 
 ## 📋 Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Anti-blocking Solutions](#anti-blocking-solutions)
+- [Alternative Parser](#alternative-parser)
 - [Configuration](#configuration)
 - [Usage Examples](#usage-examples)
 - [Output Format](#output-format)
+- [Troubleshooting 403 Errors](#troubleshooting-403-errors)
 - [Customization](#customization)
 - [Legal Considerations](#legal-considerations)
-- [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -40,7 +47,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/h1b-job-parser.git
+git clone https://github.com/b95702041/h1b-job-parser.git
 cd h1b-job-parser
 
 # Install required packages
@@ -52,13 +59,21 @@ pip install -r requirements.txt
 requests>=2.28.0
 beautifulsoup4>=4.11.0
 lxml>=4.9.0
+feedparser>=6.0.0
 ```
 
 ## ⚡ Quick Start
 
-1. **Run the parser:**
+### Method 1: Standard Parser
+1. **Run the main parser:**
 ```bash
 python h1b_job_parser.py
+```
+
+### Method 2: Alternative Parser (Recommended if blocked)
+1. **Run the anti-blocking parser:**
+```bash
+python h1b_alternative_parser.py
 ```
 
 2. **View results:**
@@ -70,18 +85,81 @@ python h1b_job_parser.py
 - `h1b_jobs_YYYYMMDD_HHMMSS.json` - All jobs in JSON format
 - `h1b_sponsors_only_YYYYMMDD_HHMMSS.csv` - Only H1B sponsoring jobs
 
+## 🛡️ Anti-blocking Solutions
+
+If you encounter **403 Forbidden** errors, try these solutions in order:
+
+### Solution 1: Use Alternative Parser
+```bash
+# The alternative parser uses RSS feeds and different job sites
+python h1b_alternative_parser.py
+```
+
+### Solution 2: Use VPN
+1. Connect to a VPN to change your IP address
+2. Run either parser:
+```bash
+python h1b_job_parser.py
+# OR
+python h1b_alternative_parser.py
+```
+
+### Solution 3: Wait and Retry
+- Job sites may temporarily block your IP
+- Wait 1-2 hours before trying again
+- Try running at different times (early morning often works better)
+
+### Solution 4: Manual Alternatives
+- Use LinkedIn job alerts
+- Search company career pages directly
+- Check H1B database sites (MyVisaJobs.com, H1BGrader.com)
+
+## 🔄 Alternative Parser
+
+The `h1b_alternative_parser.py` script includes:
+
+- **📡 RSS Feed Search**: Uses Indeed RSS feeds (often not blocked)
+- **🔍 ZipRecruiter Integration**: Searches ZipRecruiter jobs
+- **🎯 Dice.com Support**: Searches tech-focused Dice.com
+- **🛡️ Enhanced Anti-detection**: 
+  - Rotating user agents
+  - Random delays (3-20 seconds)
+  - Better request headers
+  - Avoids explicit H1B terms in search queries
+
+### Alternative Parser Usage
+```bash
+# Run the alternative parser
+python h1b_alternative_parser.py
+
+# Expected output sources:
+# - Indeed RSS feeds
+# - ZipRecruiter jobs  
+# - Dice.com listings
+```
+
 ## 🔧 Configuration
 
 ### Search Queries
 Modify the `queries` list in the `main()` function:
 
+**Main Parser (h1b_job_parser.py):**
 ```python
 queries = [
-    "DevOps Engineer H1B sponsorship",
-    "Site Reliability Engineer visa sponsorship", 
-    "Infrastructure Engineer H1B",
-    "Platform Engineer visa sponsor",
-    "Cloud Engineer H1B sponsorship"
+    "DevOps Engineer",  # Simplified to avoid blocking
+    "Site Reliability Engineer", 
+    "Infrastructure Engineer",
+    "Platform Engineer",
+    "Cloud Engineer"
+]
+```
+
+**Alternative Parser (h1b_alternative_parser.py):**
+```python
+queries = [
+    "DevOps Engineer",
+    "Site Reliability Engineer",
+    "Infrastructure Engineer"
 ]
 ```
 
@@ -112,18 +190,23 @@ self.h1b_keywords = [
 
 ### Basic Usage
 ```bash
+# Main parser
 python h1b_job_parser.py
+
+# Alternative parser (recommended if blocked)
+python h1b_alternative_parser.py
 ```
 
 ### Programmatic Usage
 ```python
+# Main parser
 from h1b_job_parser import H1BJobParser
 
 # Initialize parser
 parser = H1BJobParser()
 
 # Search for specific role
-jobs = parser.scrape_indeed("DevOps Engineer H1B", max_pages=5)
+jobs = parser.scrape_indeed("DevOps Engineer", max_pages=2)  # Reduced pages to avoid blocking
 
 # Filter H1B sponsors
 h1b_jobs = parser.filter_h1b_jobs(jobs)
@@ -135,20 +218,25 @@ parser.generate_report(jobs)
 parser.save_results(h1b_jobs, "devops_h1b_results")
 ```
 
-### Custom Search
+### Alternative Parser Usage
 ```python
-# Search specific location
-sf_jobs = parser.scrape_indeed(
-    "SRE H1B sponsorship", 
-    location="San Francisco, CA", 
-    max_pages=3
-)
+from h1b_alternative_parser import AlternativeH1BJobParser
 
-# Search Glassdoor
-glassdoor_jobs = parser.scrape_glassdoor(
-    "Infrastructure Engineer visa", 
-    max_pages=2
-)
+# Initialize alternative parser
+parser = AlternativeH1BJobParser()
+
+# Search RSS feeds (often not blocked)
+rss_jobs = parser.search_rss_feeds()
+
+# Search ZipRecruiter
+zip_jobs = parser.search_ziprecruiter("DevOps Engineer", max_pages=2)
+
+# Search Dice
+dice_jobs = parser.search_dice("Site Reliability Engineer", max_pages=2)
+
+# Combine and analyze
+all_jobs = rss_jobs + zip_jobs + dice_jobs
+h1b_jobs = parser.filter_h1b_jobs(all_jobs)
 ```
 
 ## 📄 Output Format
@@ -283,20 +371,96 @@ LinkedIn has strict anti-scraping measures. Consider using:
 - Manual LinkedIn searches
 - LinkedIn Premium job alerts
 
-## 🔧 Troubleshooting
+## 🔧 Troubleshooting 403 Errors
+
+### Common Error: 403 Forbidden
+```
+Error scraping Indeed page 0: 403 Client Error: Forbidden
+```
+
+**This means the job site is blocking your requests. Here's how to fix it:**
+
+### ✅ **Immediate Solutions**
+
+**1. Use the Alternative Parser**
+```bash
+python h1b_alternative_parser.py
+```
+*This uses RSS feeds and different job sites that are less restrictive.*
+
+**2. Use a VPN**
+```bash
+# Connect to VPN first, then:
+python h1b_job_parser.py
+```
+
+**3. Wait Before Retrying**
+```bash
+# Wait 1-2 hours, then try again
+python h1b_job_parser.py
+```
+
+### 🛠️ **Advanced Solutions**
+
+**Install Selenium for Browser Automation**
+```bash
+pip install selenium webdriver-manager
+# Uses real browser - harder to detect but slower
+```
+
+**Use Proxy Servers**
+```python
+# Add to your script
+proxies = {
+    'http': 'http://proxy-server:port',
+    'https': 'https://proxy-server:port'
+}
+```
+
+### 📊 **Manual Backup Methods**
+
+**1. Direct Company Searches**
+- Google: `careers.google.com`
+- Microsoft: `careers.microsoft.com` 
+- Amazon: `amazon.jobs`
+- Meta: `careers.meta.com`
+
+**2. H1B Database Sites**
+- MyVisaJobs.com - Search H1B sponsors
+- H1BGrader.com - Company H1B data
+- H1BData.info - Historical H1B information
+
+**3. Set Up Job Alerts**
+- LinkedIn job alerts for H1B keywords
+- Indeed email notifications
+- Google job alerts
+
+### 🎯 **Prevention Tips**
+
+1. **Don't run script too frequently** (max 2-3 times per day)
+2. **Use random delays** between requests (already implemented)
+3. **Try different times** (early morning often works better)
+4. **Use VPN** to rotate IP addresses
+5. **Reduce max_pages** to avoid overwhelming servers
+
+### 📋 **Troubleshooting Checklist**
+
+- [ ] Try alternative parser first
+- [ ] Check internet connection
+- [ ] Try with VPN connected
+- [ ] Wait 1-2 hours if recently blocked
+- [ ] Reduce number of search pages
+- [ ] Check if sites are down (use downdetector.com)
+- [ ] Try manual search to verify site is working
+
+## 🔧 Troubleshooting Other Issues
 
 ### Common Issues
 
-**Issue**: No jobs found
+**Issue**: No jobs found (even without 403 errors)
 ```bash
-# Solution: Check search terms and increase max_pages
-parser.scrape_indeed(query, max_pages=10)
-```
-
-**Issue**: HTTP errors (403, 429)
-```bash
-# Solution: Increase delays or use VPN
-time.sleep(5)  # Increase from default 2-3 seconds
+# Solution: Website structure may have changed, check CSS selectors
+# Debug with: print(len(job_cards)) in extract methods
 ```
 
 **Issue**: Jobs are older than 24 hours
@@ -311,6 +475,13 @@ time.sleep(5)  # Increase from default 2-3 seconds
 # Update CSS selectors in extract methods
 ```
 
+**Issue**: Alternative parser not finding jobs
+```bash
+# Solution: RSS feeds may be down or changed
+# Try individual components:
+python -c "from h1b_alternative_parser import *; parser = AlternativeH1BJobParser(); jobs = parser.search_rss_feeds(); print(len(jobs))"
+```
+
 ### Debug Mode
 
 Add debugging to see what's happening:
@@ -323,6 +494,29 @@ logging.basicConfig(level=logging.DEBUG)
 # Add debug prints
 print(f"Found {len(job_cards)} job cards")
 print(f"Parsing job: {title}")
+print(f"Response status: {response.status_code}")
+```
+
+### Testing Individual Components
+
+**Test RSS Feeds:**
+```python
+from h1b_alternative_parser import AlternativeH1BJobParser
+parser = AlternativeH1BJobParser()
+jobs = parser.search_rss_feeds()
+print(f"RSS jobs found: {len(jobs)}")
+```
+
+**Test ZipRecruiter:**
+```python
+jobs = parser.search_ziprecruiter("DevOps Engineer", max_pages=1)
+print(f"ZipRecruiter jobs found: {len(jobs)}")
+```
+
+**Test Dice:**
+```python
+jobs = parser.search_dice("Site Reliability Engineer", max_pages=1)
+print(f"Dice jobs found: {len(jobs)}")
 ```
 
 ### Common Website Changes
@@ -363,16 +557,28 @@ pip install -r requirements-dev.txt
 
 ### Priority Contributions
 
-- [ ] Add support for more job sites (Monster, Dice, ZipRecruiter)
+- [ ] Add support for more job sites (Monster, LinkedIn API integration)
+- [ ] Implement Selenium-based scraping for better reliability
+- [ ] Add proxy rotation functionality
 - [ ] Implement job description analysis for skills matching
 - [ ] Add email notifications for new H1B jobs
-- [ ] Create web interface
+- [ ] Create web interface for easier use
 - [ ] Add database storage option
 - [ ] Implement ML-based H1B detection
+- [ ] Add support for more visa types (O1, L1, etc.)
+- [ ] Create Docker container for easy deployment
 
 ## 📝 Changelog
 
-### v1.2.0 (Current)
+### v1.3.0 (Current - Anti-blocking Update)
+- ✅ Added alternative parser with RSS feeds and multiple job sites
+- ✅ Enhanced anti-blocking with rotating user agents and random delays
+- ✅ Added ZipRecruiter and Dice.com support
+- ✅ Improved error handling for 403 blocks
+- ✅ Updated headers to better mimic real browsers
+- ✅ Added comprehensive troubleshooting guide
+
+### v1.2.0
 - ✅ Added 24-hour filtering requirement
 - ✅ Added Glassdoor support
 - ✅ Enhanced date parsing
@@ -401,9 +607,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/username/h1b-job-parser/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/username/h1b-job-parser/discussions)
-- **Email**: your-email@domain.com
+- **Issues**: [GitHub Issues](https://github.com/b95702041/h1b-job-parser/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/b95702041/h1b-job-parser/discussions)
+
+## 🆘 Getting Help
+
+**If you encounter 403 errors:**
+1. First try: `python h1b_alternative_parser.py`
+2. Use VPN and retry
+3. Check the troubleshooting section above
+4. Open a GitHub issue with error details
+
+**For other issues:**
+1. Check the troubleshooting section
+2. Enable debug mode to see what's happening
+3. Test individual components
+4. Open a GitHub issue with full error trace
 
 ## 🌟 Star History
 

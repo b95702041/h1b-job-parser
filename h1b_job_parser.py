@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import re
 import json
 import time
+import random  # Add random for delays
 from urllib.parse import urljoin, urlparse
 import csv
 from datetime import datetime
@@ -19,8 +20,21 @@ from typing import List, Dict, Optional
 class H1BJobParser:
     def __init__(self):
         self.session = requests.Session()
+        
+        # Enhanced headers to appear more like a real browser
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0'
         })
         
         # Keywords for job titles
@@ -82,12 +96,21 @@ class H1BJobParser:
             }
             
             try:
-                response = self.session.get(base_url, params=params)
+                # Add random delay to appear more human-like
+                time.sleep(random.uniform(3, 7))
+                
+                response = self.session.get(base_url, params=params, timeout=30)
                 response.raise_for_status()
                 soup = BeautifulSoup(response.content, 'html.parser')
                 
-                # Find job cards
+                # Find job cards - try multiple selectors
                 job_cards = soup.find_all('div', class_='job_seen_beacon')
+                if not job_cards:
+                    job_cards = soup.find_all('div', class_='slider_container')
+                if not job_cards:
+                    job_cards = soup.find_all('div', class_='jobsearch-SerpJobCard')
+                
+                print(f"Found {len(job_cards)} job cards on page {page}")
                 
                 for card in job_cards:
                     job_data = self.extract_indeed_job_data(card)
@@ -96,8 +119,11 @@ class H1BJobParser:
                         job_data.update(h1b_info)
                         jobs.append(job_data)
                 
-                time.sleep(2)  # Be respectful to the server
-                
+            except requests.exceptions.RequestException as e:
+                print(f"Request error on Indeed page {page}: {e}")
+                if "403" in str(e):
+                    print("⚠️  Indeed is blocking requests. Try using a VPN or proxy.")
+                    break
             except Exception as e:
                 print(f"Error scraping Indeed page {page}: {e}")
         
@@ -249,38 +275,12 @@ class H1BJobParser:
     def scrape_glassdoor(self, query: str, location: str = "United States", max_pages: int = 3) -> List[Dict]:
         """Scrape Glassdoor for recent job postings"""
         jobs = []
-        base_url = "https://www.glassdoor.com/Job/jobs.htm"
+        print("⚠️  Note: Glassdoor has strict anti-scraping measures and may block requests.")
+        print("    Consider using manual search or official APIs for better results.")
         
-        for page in range(max_pages):
-            params = {
-                'q': query,
-                'l': location,
-                'p': page + 1,
-                'fromAge': 1  # Jobs from last 1 day
-            }
-            
-            try:
-                response = self.session.get(base_url, params=params)
-                response.raise_for_status()
-                soup = BeautifulSoup(response.content, 'html.parser')
-                
-                # Find job cards (Glassdoor structure may vary)
-                job_cards = soup.find_all('div', class_='react-job-listing')
-                if not job_cards:
-                    job_cards = soup.find_all('li', attrs={'data-test': 'jobListing'})
-                
-                for card in job_cards:
-                    job_data = self.extract_glassdoor_job_data(card)
-                    if job_data and self.is_target_role(job_data['title'], job_data['description']):
-                        h1b_info = self.check_h1b_sponsorship(job_data['description'])
-                        job_data.update(h1b_info)
-                        jobs.append(job_data)
-                
-                time.sleep(3)  # Glassdoor is more strict about rate limiting
-                
-            except Exception as e:
-                print(f"Error scraping Glassdoor page {page}: {e}")
-        
+        # Glassdoor scraping is very difficult due to their protection
+        # This is kept as placeholder - actual implementation would require
+        # more sophisticated techniques or API access
         return jobs
 
     def extract_glassdoor_job_data(self, job_card) -> Optional[Dict]:
@@ -427,31 +427,39 @@ def main():
     """Main function to run the job parser"""
     parser = H1BJobParser()
     
-    # Define search queries for different role types
+    # Simplified search queries (avoid explicit H1B terms that trigger blocking)
     queries = [
-        "DevOps Engineer H1B sponsorship",
-        "Site Reliability Engineer visa sponsorship",
-        "Infrastructure Engineer H1B",
-        "Platform Engineer visa sponsor",
-        "Cloud Engineer H1B sponsorship"
+        "DevOps Engineer",
+        "Site Reliability Engineer", 
+        "Infrastructure Engineer",
+        "Platform Engineer",
+        "Cloud Engineer"
     ]
     
     all_jobs = []
     
     print("Starting job search for positions posted in the last 24 hours...")
+    print("⚠️  Note: If you get 403 errors, the sites are blocking requests.")
+    print("    Solutions: Use VPN, proxy, or run script less frequently.\n")
     
     for query in queries:
         print(f"\nSearching for: {query} (last 24 hours)")
         
-        # Search Indeed
-        indeed_jobs = parser.scrape_indeed(query, max_pages=3)
-        all_jobs.extend(indeed_jobs)
-        print(f"Found {len(indeed_jobs)} relevant jobs from Indeed")
+        # Search Indeed with error handling
+        try:
+            indeed_jobs = parser.scrape_indeed(query, max_pages=2)  # Reduced pages
+            all_jobs.extend(indeed_jobs)
+            print(f"Found {len(indeed_jobs)} relevant jobs from Indeed")
+        except Exception as e:
+            print(f"Indeed search failed: {e}")
         
-        # Search Glassdoor
-        glassdoor_jobs = parser.scrape_glassdoor(query, max_pages=2)
-        all_jobs.extend(glassdoor_jobs)
-        print(f"Found {len(glassdoor_jobs)} relevant jobs from Glassdoor")
+        # Skip Glassdoor for now due to blocking issues
+        print("Skipping Glassdoor due to anti-scraping measures")
+        
+        # Add delay between different searches
+        if query != queries[-1]:  # Don't sleep after last query
+            print("Waiting 10 seconds before next search...")
+            time.sleep(10)
     
     # Remove duplicates based on URL
     unique_jobs = []
