@@ -88,13 +88,13 @@ Dice: https://www.dice.com/jobs?q=DevOps&filters.postedDate=ONE
 
 ## 📁 Repository Files Explanation
 
-### Scripts That Don't Work
+### Original Scripts (That Don't Work)
 - `h1b_job_parser.py` - **Gets 403 errors, finds 0 jobs**
 - `simple_working_h1b_parser.py` - **Doesn't find jobs, just lists companies**
 
-### New Honest Scripts
-- `honest_h1b_finder.py` - Shows H1B sponsors, tells you to manually check jobs
-- Git commit: See below for adding this
+### New MyVisaJobs Scripts (Show H1B History, Not Current Jobs)
+- `enhanced_h1b_parser.py` - Lists all sizes of companies that sponsor H1B (but no real job listings)
+- `myvisajobs_scraper.py` - Tries to get MyVisaJobs H1B sponsor data (historical data only)
 
 ## 🔧 If You Still Want to Try
 
@@ -140,43 +140,6 @@ python honest_h1b_finder.py  # At least this is honest about limitations
 - ✅ Understanding anti-bot mechanisms
 - ❌ NOT for finding current job listings
 - ❌ NOT for automated job searching
-
-## 📝 Git Commands for New Scripts
-
-```bash
-# Add the honest H1B finder script
-git add honest_h1b_finder.py
-git commit -m "Add honest H1B finder - shows sponsors without fake job listings
-
-- Lists companies that have sponsored H1B visas (historical data)
-- Provides real career page URLs
-- Does NOT claim to show current job openings
-- Transparent about manual verification needed
-- No more fake job listings or false promises"
-
-# Update README with the truth
-git add README.md
-git commit -m "Update README with honest explanation of why scripts don't work
-
-- Explain 403 errors and why scraping fails
-- Remove false promises about finding jobs
-- Add what actually works (manual search + alerts)
-- Provide direct search URLs that work
-- Be transparent about script limitations"
-
-# If you made the enhanced parser and MyVisaJobs scraper
-git add enhanced_h1b_parser.py myvisajobs_scraper.py
-git commit -m "Add enhanced parsers (Note: these still don't show real jobs)
-
-- enhanced_h1b_parser.py: Lists H1B sponsors by company size
-- myvisajobs_scraper.py: Attempts to get MyVisaJobs data
-- Both scripts show historical H1B data only
-- Neither can find current job openings
-- Manual verification still required"
-
-# Push all changes
-git push origin main
-```
 
 ## 🙏 Apologies
 
