@@ -135,29 +135,19 @@ python honest_h1b_finder.py  # At least this is honest about limitations
 
 ## 💡 What This Repository Is Good For
 
-- ✅ Learning why web scraping doesn't work anymore
+- ✅ Learning about web scraping challenges and anti-bot mechanisms
 - ✅ Getting a list of companies that sponsored H1B before
-- ✅ Understanding anti-bot mechanisms
+- ✅ Understanding current limitations of job scraping
 - ❌ NOT for finding current job listings
 - ❌ NOT for automated job searching
 
-## 🙏 Apologies
-
-We apologize for:
-- Scripts that claim to find jobs but don't
-- Making up job listings that don't exist
-- Not being upfront about technical limitations
-- Wasting your time with non-functional scrapers
-
 ## 🎯 Bottom Line
 
-**Want to find H1B jobs?** Skip these scripts. Use:
+**Want to find H1B jobs?** Use these methods instead:
 1. Browser bookmarks of job searches
 2. Email alerts
 3. Daily manual checking
 4. Direct applications
-
-**Want to learn about web scraping failures?** This repo is perfect for that.
 
 ---
 
